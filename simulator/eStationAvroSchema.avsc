@@ -1,0 +1,227 @@
+{
+    "type": "record",
+    "name": "eStation",
+    "namespace": "type",
+    "fields":[
+        {"name":"Station_ID", "type": "string"},
+        {"name": "MsgID", "type": "int"},
+        {"name":"status", "type": "string"},
+        {"name":"timeStamp", "type": "long", "logicalType":"timestamp-millis"},
+        {
+            "name": "QMT",
+            "type":{
+                "type":"record",
+                "name":"PWC",
+                "namespace": "type.eStation.PWCs",
+                "fields":[
+                    {"name":"Voltage", "type": "int"},
+                    {"name":"Temperature", "type": "int"},
+                    {
+                        "name": "Connections",
+                        "type": {
+                            "type":"map", 
+                            "namespace": "type.eStation.PWC",
+                            "name": "Connections", 
+                            "values": {"type":"record", "namespace": "type.eStation.PWC.Connections", "name": "conn", "fields":[{"name": "current", "type": "int"}]},
+                            "default": {}
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Transformator",
+            "type":{
+                "type": "record",
+                "name": "Transformator",
+                "namespace": "type.eStation",
+                "fields":[
+                    {"name": "set_Power", "type": "int"},
+                    {"name": "DC_Voltage", "type": "int"}
+                ]
+            }
+        },
+        {
+            "name": "PCSs",
+            "type":{
+                "type": "map",
+                "name": "PCSs",
+                "namespace": "type.eStation",
+                "values": {
+                    "type": "record",
+                    "namespace": "type.eStation.PCSs",
+                    "name": "PCS",
+                    "fields": [
+                        {"name": "set_Voltage", "type": "int"},
+                        {"name": "set_Current", "type": "int"}
+                    ]
+                },
+                "default": {}
+            }
+        },
+        {
+            "name": "PWCATLs",
+            "type":{
+                "type":"map",
+                "name":"PWCs",
+                "namespace": "type.eStation",
+                "values": "type.eStation.PWCs.PWC",
+                "default": {}
+            }
+        },
+        {
+            "name": "PWCEVs",
+            "type": {
+                "type":"map",
+                "name":"PWCs",
+                "namespace": "type.eStation",
+                "values": "type.eStation.PWCs.PWC",
+                "default": {}
+            }
+        },
+        {
+            "name": "EVSEs",
+            "type": {
+                "type": "map",
+                "namespace": "type.eStation",
+                "name": "EVSEs",
+                "values": {
+                    "type": "record",
+                    "namespace": "type.eStation.EVSEs",
+                    "name": "EVSE",
+                    "fields":[
+                        {"name": "SW_version", "type": "string"},
+                        {"name": "Grid_power", "type": "int"},
+                        {"name": "Temperature", "type": "int"},
+                        {"name": "Fault_1", "type": "int"},
+                        {"name": "Fault_2", "type": "int"},
+                        {"name": "Non_recoverable_Fault_1", "type": "int"},
+                        {"name": "Non_recoverable_Fault_2", "type": "int"},
+                        {
+                            "name": "Connectors", 
+                            "type":{
+                                "type": "map",
+                                "namespace": "type.eStation.EVSEs.EVSE",
+                                "name": "connectors",
+                                "values": {
+                                    "type": "record",
+                                    "namespace": "type.eStation.EVSEs.EVSE.Connectors",
+                                    "name": "conn",
+                                    "fields":[
+                                        {"name": "Grid_Power", "type": "int"},
+                                        {"name": "EV_voltage", "type": "int"},
+                                        {"name": "EV_Current", "type": "float"},
+                                        {"name": "EV_SOC", "type": "int"},
+                                        {"name": "EV_Battery", "type": "int"},
+                                        {"name": "EV_Eexport", "type": "float"},
+                                        {"name": "EV_Eimport", "type": "float"},
+                                        {"name": "EV_charge_time", "type": "int"},
+                                        {"name": "EV_est_charge_time_left", "type": "int"},
+                                        {"name": "OCPP_Status", "type": "int"},
+                                        {"name": "EV_status", "type": "int"},
+                                        {"name": "CP_status", "type": "int"},
+                                        {"name": "EV_Com_State", "type": "int"},
+                                        {"name": "EV_control_State", "type": "int"},
+                                        {"name": "EV_max_SOC", "type": "int"},
+                                        {"name": "EV_max_Current", "type": "int"},
+                                        {"name": "EV_max_Voltage", "type": "int"},
+                                        {"name": "EV_max_Power", "type": "int"},
+                                        {"name": "EV_request_Voltage", "type": "int"},
+                                        {"name": "EV_request_Current", "type": "int"}
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "BESSs",
+            "type": {
+                "type": "map",
+                "namespace": "type.eStation",
+                "name": "BESSs",
+                "values": {
+                    "type": "record",
+                    "namespace": "type.eStation.BESSs",
+                    "name": "rack",
+                    "fields": [
+                        {"name": "System_Warning", "type":"int"},
+                        {"name": "System_Status", "type":"int"},
+                        {"name": "Voltage", "type":"float"},
+                        {"name": "Current", "type":"float"},
+                        {"name": "SOC", "type":"float"},
+                        {"name": "SOH", "type":"float"},
+
+                        {"name": "Max_Cell_Voltage", "type":"float"},
+                        {"name": "Min_Cell_Voltage", "type":"float"},
+                        {"name": "Avg_Cell_Voltage", "type":"float"},
+
+                        {"name": "Max_Cell_Temperature", "type":"float"},
+                        {"name": "Min_Cell_Temperature", "type":"float"},
+                        {"name": "Avg_Cell_Temperature", "type":"float"},
+
+                        {"name": "Max_Charge_Current", "type":"float"},
+                        {"name": "Max_Discharge_Current", "type":"float"},
+                        {
+                            "name": "Modules",
+                            "type":{
+                                "type": "map",
+                                "namespace": "type.eStation.BESSs.rack",
+                                "name": "modules",
+                                "values":{
+                                    "type": "record",
+                                    "namespace": "type.eStation.BESSs.rack.modules",
+                                    "name": "module",
+                                    "fields":[
+                                        {"name":"Voltage", "type": "float"},
+                                        {"name":"Current", "type": "float"},
+                                        {"name":"SOC", "type": "int"},
+                                        {"name":"SOH", "type": "int"},
+
+                                        {"name":"Max_Cell_Voltage", "type": "float"},
+                                        {"name":"Min_Cell_Voltage", "type": "float"},
+                                        {"name":"Avg_Cell_Voltage", "type": "float"},
+
+                                        {"name":"Min_Voltage_Cell_ID", "type": "int"},
+                                        {"name":"Max_Voltage_Cell_ID", "type": "int"},
+
+                                        {"name":"Max_Cell_Temperature", "type": "float"},
+                                        {"name":"Min_Cell_Temperature", "type": "float"},
+                                        {"name":"Avg_Cell_Temperature", "type": "float"},
+
+                                        {"name":"Min_Temp_Cell_ID", "type": "int"},
+                                        {"name":"Max_Temp_Cell_ID", "type": "int"},
+
+                                        {"name":"Max_Charge_Current", "type": "float"},
+                                        {"name":"Max_Discharge_current", "type": "float"},
+
+                                        {"name":"TMS_command", "type": "int"},
+                                        {"name":"TMS_temperature", "type": "float"},
+                                        {"name":"TMS_Real_Mode", "type": "int"},
+                                    
+                                        {"name":"Rack_inlet_Temp", "type": "float"},
+                                        {"name":"Rack_outlet_Temp", "type": "float"},
+
+                                        {"name":"Temperature", "type": "float"},
+                                        {"name":"TMS_power", "type": "int"},
+                                        {"name":"TMS_fault", "type": "int"},
+
+                                        {"name":"Door_State", "type": "int"},
+                                        {"name":"Fan_State", "type": "int"},
+
+                                        {"name":"System_Warning", "type": "int"},
+                                        {"name":"Relay_Status", "type": "int"},
+                                        {"name":"Balancing", "type": "int"}
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                "default": {}
+            }
+        }
+    ]
+}
