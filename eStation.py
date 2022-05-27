@@ -1,16 +1,18 @@
 import time
 
-from confluent_kafka import avro
-from confluent_kafka.avro import AvroProducer
+from confluent_kafka import avro, Producer
+import json
+#from confluent_kafka.avro import AvroProducer
 import uuid
+import os
 
-from eStation.battery import *
-from eStation.EVSE import *
-from eStation.PCS import *
-from eStation.PWC import *
-from eStation.trafo import *
+from components.battery import *
+from components.EVSE import *
+from components.PCS import *
+from components.PWC import *
+from components.trafo import *
 
-
+'''
 def load_avro_schema_from_file(schema_file):
     key_schema_string = """
     {"type": "string"}
@@ -20,10 +22,10 @@ def load_avro_schema_from_file(schema_file):
     value_schema = avro.load(schema_file)
 
     return key_schema, value_schema
-
+'''
 
 class eStation:
-    def __init__(self, ID, schemaRegistry, schemaPath, kafkaServer='192.168.188.54:9092', nEVSEs=4, nBESS=1, nPWCEV=1, nPWCATL=1, nPCS=1):
+    def __init__(self, producer_conf, ID, nEVSEs=4, nBESS=1, nPWCEV=1, nPWCATL=1, nPCS=1): #, schemaRegistry, schemaPath, kafkaServer='192.168.188.54:9092',
         self.ID = ID
         self.msgID = 0
         self.status = 'running'
@@ -35,8 +37,9 @@ class eStation:
         self.BESS = [rack()]*nBESS
         self.EVSEs = [EVSE()]*nEVSEs
 
-        key_schema, value_schema = load_avro_schema_from_file(schemaPath)
-        self.producer = AvroProducer({"bootstrap.servers": kafkaServer, "schema.registry.url": schemaRegistry}, default_key_schema=key_schema, default_value_schema=value_schema)
+        self.producer = Producer(producer_conf)
+        #key_schema, value_schema = load_avro_schema_from_file(schemaPath)
+        #self.producer = AvroProducer({"bootstrap.servers": kafkaServer, "schema.registry.url": schemaRegistry}, default_key_schema=key_schema, default_value_schema=value_schema)
     
     def update(self):
         self.QMT.updateVals()
@@ -73,7 +76,7 @@ class eStation:
             if myTime + delay < time.time():
                 myTime = time.time() if myTime == 0 else myTime+delay
                 #self.producer.send(self.ID if not topic else topic, self.getVals())
-                self.producer.produce(topic=topic, key=str(uuid.uuid4()), value=self.getVals())
+                self.producer.produce(topic=topic, key=str(uuid.uuid4()), value=json.dumps(self.getVals()))
                 msgCount +=1
             if msgCount >= maxIter:
                 break
@@ -86,31 +89,39 @@ def parseArguments():
     parser = argparse.ArgumentParser(description='This is a script simulating the data production of the components in an eStation. All values are randomized and do not follow any logic.')
 
     parser.add_argument('--name', type=str, default="Default",help="Unique identifier of the eStation as it will appear on Kafka")
-    parser.add_argument('--schema-registry', type=str, help="URL of schema registry used to store and verify compatibility of serializer")
-    parser.add_argument('--schema', type=str, help="Path to schema used to serialize the message")
-    parser.add_argument('--bootstrap-server', type=str, help="URL of the kafka or zookeeper server through which we connect to topic as a producer")
+    #parser.add_argument('--schema-registry', type=str, help="URL of schema registry used to store and verify compatibility of serializer")
+    #parser.add_argument('--schema', type=str, help="Path to schema used to serialize the message")
+    #parser.add_argument('--bootstrap-server', type=str, help="URL of the kafka or zookeeper server through which we connect to topic as a producer")
     parser.add_argument('--PCS', type=int, default=1, help="Number of PCSs simulated for the eStation")
     parser.add_argument('--PWCATL', type=int, default=1, help="Number of PWCATLs simulated for the eStation")
     parser.add_argument('--PWCEV', type=int, default=1, help="Number of PWCEVs simulated for the eStation")
     parser.add_argument('--BESS', type=int, default=1, help="Number of BESSs simulated for the eStation")
     parser.add_argument('--EVSE', type=int, default=1, help="Number of EVSEs simulated for the eStation")
-    parser.add_argument('--duration', type=int, default=20, help="Duration of data production in seconds")
-    parser.add_argument('--rate', type=float, default=1, help="Frequency of data production in Hz")
-    parser.add_argument('--topic', type=str, help="Frequency of data production in Hz")
+    parser.add_argument('--duration', type=int, default=60, help="Duration of data production in seconds")
+    parser.add_argument('--rate', type=float, default=20, help="Frequency of data production in Hz")
+    parser.add_argument('--topic', type=str, default="eStation", help="Frequency of data production in Hz")
 
     return parser.parse_args()
 
 if __name__ == "__main__":
     args = parseArguments()
 
+    conf = {
+        "bootstrap.servers" : os.getenv('KAFKA_SERVER'),
+        "security.protocol" : "SASL_SSL",
+        "sasl.mechanisms" : "PLAIN",
+        "sasl.username" : os.getenv('KAFKA_USER'),
+        "sasl.password" : os.getenv('KAFKA_PSD')
+    }
+    
     myStation = eStation(
-        args.name,#"ATL1", 
-        schemaRegistry=args.schema_registry, #"http://192.168.188.54:8081", 
-        schemaPath=args.schema,#'eStationAvroSchemaV2.avsc',
-        kafkaServer=args.bootstrap_server,#'192.168.188.54:9092', 
+        producer_conf=conf,
+        ID=args.name,#"ATL1", 
+        #schemaRegistry=args.schema_registry, #"http://192.168.188.54:8081", 
+        #schemaPath=args.schema,#'eStationAvroSchemaV2.avsc',
+        #kafkaServer=args.bootstrap_server,#'192.168.188.54:9092', 
         nEVSEs=args.EVSE, nBESS=args.BESS, nPWCEV=args.PWCEV, nPWCATL=args.PWCATL, nPCS=args.PCS)
 
-    print(myStation.getVals())
     print("starting Data Sim")
-    #myStation.run(delay=1/args.rate, duration=args.duration, topic=args.topic)
+    myStation.run(delay=1/args.rate, duration=args.duration, topic=args.topic)
     print("End data sim")
