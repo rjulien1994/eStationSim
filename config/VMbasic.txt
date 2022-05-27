@@ -1,4 +1,0 @@
-    config.vm.define "{VMname}" do |{VMRef}|
-        {VMRef}.vm.box = "hashicorp/bionic64"
-        {VMRef}.vm.provision :shell, path: "{bootstrapFileName}"
-    end

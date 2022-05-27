@@ -1,7 +1,0 @@
-nohup python3 -m pipenv run python3 eStation.py \
---name "{eStationID}" \
---schema-registry "{schemaRegistryURL}" \
---schema "{schemaPath}" \
---bootstrap-server "{serverIP}" \
---PCS {nPCS} --PWCATL {nPWCATLs} --PWCEV {nPWCEVs} --BESS {BESSs} --EVSE {nEVSEs} \
---duration 300 --rate 1 --topic "eStations" &
